@@ -1,0 +1,42 @@
+Curiosity is a Mars rover that is exploring Gale crater and Mount Sharp on Mars as part of NASA's Mars Science Laboratory (MSL) mission.[2] Launched in 2011 and landed the following year, the car-sized rover continues to operate more than a decade after its original two-year mission.
+
+Curiosity was launched from Cape Canaveral, Florida, on November 26, 2011, at 15:02:00 UTC and landed on Aeolis Palus inside Gale crater on Mars on August 6, 2012, 05:17:57 UTC.[3][4][5] The Bradbury Landing site was less than 2.4 km (1.5 mi) from the center of the rover's touchdown target after a 560 million km (350 million mi) journey.[6][7]
+
+Mission goals include an investigation of the Martian climate and geology, an assessment of whether the selected field site inside Gale has ever offered environmental conditions favorable for microbial life (including investigation of the role of water), and planetary habitability studies in preparation for human exploration.[8][9]
+
+In December 2012, Curiosity's two-year mission was extended indefinitely.[10][11][12] On August 6, 2022, a detailed overview of accomplishments by the Curiosity rover for the last ten years was reported.[13] The rover is still operational, and as of May 27, 2026, Curiosity has been active on Mars for 4908 sols (5042 total days; 13 years, 294 days) since its landing (see current status).
+
+The NASA/JPL Mars Science Laboratory/Curiosity Project Team was awarded the 2012 Robert J. Collier Trophy by the National Aeronautic Association "In recognition of the extraordinary achievements of successfully landing Curiosity on Mars, advancing the nation's technological and engineering capabilities, and significantly improving humanity's understanding of ancient Martian habitable environments."[14] Curiosity's rover design serves as the basis for NASA's 2021 Perseverance mission, which carries different scientific instruments.
+
+Mission
+Further information: Timeline of Mars Science Laboratory
+
+Goals and objectives
+As established by the Mars Exploration Program, the main scientific goals of the MSL mission are to help determine whether Mars could ever have supported life, as well as determining the role of water, and to study the climate and geology of Mars.[8][9] The mission results will also help prepare for human exploration.[9] To contribute to these goals, MSL has eight main scientific objectives:[15]
+
+Biological  
+Determine the nature and inventory of organic carbon compounds
+Investigate the chemical building blocks of life (carbon, hydrogen, nitrogen, oxygen, phosphorus, and sulfur)
+Identify features that may represent the effects of biological processes (biosignatures and biomolecules)
+
+Geological and geochemical
+Investigate the chemical, isotopic, and mineralogical composition of the Martian surface and near-surface geological materials
+Interpret the processes that have formed and modified rocks and soils
+
+Planetary process
+Assess long-timescale (i.e., 4-billion-year) Martian atmospheric evolution processes
+Determine present state, distribution, and cycling of water and carbon dioxide
+
+Surface radiation
+Characterize the broad spectrum of surface radiation, including galactic and cosmic radiation, solar proton events and secondary neutrons. As part of its exploration, it also measured the radiation exposure in the interior of the spacecraft as it traveled to Mars, and it is continuing radiation measurements as it explores the surface of Mars. This data would be important for a future crewed mission.[16]
+About one year into the surface mission, and having assessed that ancient Mars could have been hospitable to microbial life, the MSL mission objectives evolved to developing predictive models for the preservation process of organic compounds and biomolecules; a branch of paleontology called taphonomy.[17] The region it is set to explore has been compared to the Four Corners region of the North American west.[18]
+
+Name
+A NASA panel selected the name Curiosity following a nationwide student contest that attracted more than 9,000 proposals via the Internet and mail. Twelve-year-old Clara Ma from Sunflower Elementary School in Lenexa, Kansas submitted the winning entry. As her prize, Ma won a trip to NASA's Jet Propulsion Laboratory (JPL) in Pasadena, California, where she signed her name directly onto the rover as it was being assembled.[19]
+
+Ma wrote in her winning essay:
+
+Curiosity is an everlasting flame that burns in everyone's mind. It makes me get out of bed in the morning and wonder what surprises life will throw at me that day. Curiosity is such a powerful force. Without it, we wouldn't be who we are today. Curiosity is the passion that drives us through our everyday lives. We have become explorers and scientists with our need to ask questions and to wonder.[19]
+
+Cost
+Adjusted for inflation, Curiosity has a life-cycle cost of US$3.2 billion in 2020. By comparison, the 2021 Perseverance rover has a life-cycle cost of US$2.9 billion.[20]
