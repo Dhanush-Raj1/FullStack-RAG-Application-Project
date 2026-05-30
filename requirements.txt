@@ -5,4 +5,8 @@ python-dotenv==1.2.2
 pymupdf4llm==1.27.2.3
 langchain-text-splitters==1.1.2
 google-genai==2.7.0
+pgvector==0.4.2
+psycopg==3.3.4
+psycopg-binary==3.3.4
+cohere==7.0.2
 
