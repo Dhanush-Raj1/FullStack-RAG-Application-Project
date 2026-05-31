@@ -6,12 +6,12 @@ import pymupdf4llm
 from src.models.document import Document, DocumentMetadata
 
 
-def load_pdfs(pdf_directory: Path) -> List[Document]:
+def load_pdfs(directory_path: Path) -> List[Document]:
     """
     Load all PDFs from a directory.
     """
 
-    pdf_directory = Path(pdf_directory)
+    pdf_directory = Path(directory_path)
 
     if not pdf_directory.exists():
         raise FileNotFoundError(f"Directory not found: {pdf_directory}")
