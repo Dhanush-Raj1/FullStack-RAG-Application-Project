@@ -59,7 +59,7 @@ class PDFCleaner:
 
     def fix_broken_words(self, text: str) -> str:
         """Fix common OCR-style broken words conservatively."""
-        for broken, fixed in self._BROKEN_WORDS.items():
+        for broken, fixed in self.BROKEN_WORDS.items():
             text = text.replace(broken, fixed)
         return text
 
