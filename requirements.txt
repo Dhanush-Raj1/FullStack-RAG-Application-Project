@@ -9,4 +9,6 @@ pgvector==0.4.2
 psycopg==3.3.4
 psycopg-binary==3.3.4
 cohere==7.0.2
+fastapi==0.136.3
+uvicorn==0.48.0
 
