@@ -15,7 +15,7 @@
 </p>
 
 <h3 align="center">End-to-End RAG Application: "Intelligent Document Question-Answering System"</h3>
-<h3 align="center">Production-Ready Retrieval-Augmented Generation with FastAPI & React</h3>
+<h3 align="center">Production-Ready Retrieval-Augmented Generation with FastAPI</h3>
 
 <br>
 
