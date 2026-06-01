@@ -1,5 +1,7 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
+
+from pydantic import BaseModel
 
 
 @dataclass
@@ -35,3 +37,20 @@ class DocumentRetrievalResult:
 
     chunk_index: Optional[int]
     parent_document_id: Optional[str]
+
+
+class QueryRequest(BaseModel):
+    question: str
+    source: Optional[str] = None
+    score: Optional[float] = None
+
+
+class ChunkOut(BaseModel):
+    content: str
+    source: Optional[str] = None
+    score: Optional[float] = None
+
+
+class QueryResponse(BaseModel):
+    answer: str
+    chunks: List[ChunkOut] = []
