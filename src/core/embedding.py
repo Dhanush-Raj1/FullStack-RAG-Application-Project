@@ -31,7 +31,7 @@ class GeminiEmbeddingGenerator:
             contents=text,
             config=types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT"),
         )
-        return response.embedding.values
+        return response.embeddings[0].values
 
     def embed_query(self, query: str) -> List[float]:
         response = self.client.models.embed_content(
@@ -45,7 +45,7 @@ class GeminiEmbeddingGenerator:
 
         return response.embeddings[0].values
 
-
+    # Main function for embedding list of chunked documents with batch request 
     def embed_documents(self, chunks) -> List[Dict]:
             if not chunks:
                 return []
