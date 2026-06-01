@@ -220,3 +220,4 @@ __marimo__/
 # my files/folders 
 MyReadme.md
 notebooks/document_chunks.csv
+src/main.py
