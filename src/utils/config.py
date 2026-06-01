@@ -15,4 +15,4 @@ TOP_K = 10
 TOP_N = 5
 RERANKER_MODEL = "rerank-v3.5"  # rerank-v4.0-pro,   rerank-v4.0-fast,   rerank-english-v3.0
 
-LLM_MODEL = "gemini-3.5-flash"        # "gemini-2.0-flash"      #
+LLM_MODEL = "llama-3.3-70b-versatile"                        # "gemini-3.5-flash"        # "gemini-2.0-flash"      
