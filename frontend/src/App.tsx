@@ -204,7 +204,7 @@ export default function App() {
                 fontSize: '16px', fontWeight: 800, color: '#0f0a1e',
                 letterSpacing: '-0.04em', lineHeight: '1.2',
               }}>
-                Nexus<span style={{ color: '#7c3aed' }}>AI</span>
+                Docs<span style={{ color: '#7c3aed' }}>AI</span>
               </div>
               <div style={{
                 fontSize: '10.5px', color: '#7c3aed', marginTop: '2px',
