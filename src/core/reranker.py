@@ -14,7 +14,6 @@ class CohereReranker:
         if not api_key:
             raise ValueError("COHERE_API_KEY not found in environment variables.")
 
-        # Initialize the Cohere Client
         self.client = cohere.ClientV2(api_key=api_key)
         self.model_name = model_name
         self.top_n = top_n
