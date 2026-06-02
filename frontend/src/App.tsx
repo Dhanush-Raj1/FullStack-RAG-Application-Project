@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import { useState, useRef, useEffect, type KeyboardEvent } from 'react';
 import { ChatMessage } from './components/ChatMessage';
-import { queryRAG, querySession, streamAnswer, uploadFiles, SESSION_ID } from './api';
+import { queryRAG, querySession, streamAnswer, uploadFiles } from './api';
 
 
 interface ChatMessageType {
