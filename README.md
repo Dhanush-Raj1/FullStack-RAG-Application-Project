@@ -353,7 +353,7 @@ Request:
 <br>
 
 ### Screenshot of the chat interface:
-<img src="readme_images/screenshot_2.png" width="350" height="450">
+<img src="readme_images/screenshot_2.png" width="950" height="550">
 
 <br>
 
