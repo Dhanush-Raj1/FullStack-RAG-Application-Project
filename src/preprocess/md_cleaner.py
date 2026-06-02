@@ -6,7 +6,6 @@ from src.models.document import Document
 
 class MarkdownCleaner:
     def __init__(self):
-        # Remove boilerplate at the start of files
         self.BOILERPLATE_PATTERN = re.compile(
             r"^>\s*For clean Markdown.*\n"
             r"^>\s*For a complete documentation index.*\n"
@@ -15,13 +14,11 @@ class MarkdownCleaner:
             flags=re.MULTILINE,
         )
 
-        # Remove specific navigation/footer sections 
         self.NAVIGATION_SECTION_PATTERN = re.compile(
             r"^##\s+(?:Next Steps|Related topics)\s*\n(?:(?!^##\s+).)*",
             flags=re.MULTILINE | re.DOTALL,
         )
 
-        # Remove Mermaid code blocks 
         self.MERMAID_PATTERN = re.compile(r"```mermaid\n.*?```\n?", flags=re.DOTALL)
 
         # Extract caption from image tag: ![Caption](url) -> Caption
@@ -35,10 +32,8 @@ class MarkdownCleaner:
             r"^([^\n]+)\n:\s*(.+)$", flags=re.MULTILINE
         )
 
-        # Remove leading blockquote markers
         self.BLOCKQUOTE_PATTERN = re.compile(r"^\s*>\s*", flags=re.MULTILINE)
 
-        # Cleans excess vertical whitespace
         self.EXCESS_NEWLINES_PATTERN = re.compile(r"\n{3,}")
 
     def repair_table_line_breaks(self, text: str) -> str:
