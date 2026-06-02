@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 
 from src.core.embedding import GeminiEmbeddingGenerator
-from src.core.generator import Generator
+from src.core.llama_generator import Generator
 from src.core.reranker import CohereReranker
 from src.core.retriever import Retriever
 from src.core.vector_store import VectorStore
