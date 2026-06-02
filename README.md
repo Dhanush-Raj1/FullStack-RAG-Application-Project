@@ -22,7 +22,7 @@
 # 🚀 Live Application
 🌐 The application is deployed and live
 
-👉 [Access the web app here](https://your-deployment-url.com/)
+👉 [Access the web app here](https://rag-frontend-b75n.onrender.com/)
 
 > [!NOTE]
 > The initial load of the web app may take 1-2 minutes. Once loaded, refresh the page to ensure all features work correctly.
@@ -249,7 +249,7 @@ Frontend available at `http://localhost:5173`
 
 # 🌐 Usage Guide
 
-👉 [Access the web app](https://your-deployment-url.com/)
+👉 [Access the web app](https://rag-frontend-b75n.onrender.com/)
 
 - **Global Knowledge Base Chat**: Ask questions about any pre-ingested documents
     - "What is NemoClaw?"
