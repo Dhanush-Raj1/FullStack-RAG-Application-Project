@@ -348,12 +348,12 @@ Request:
 
 # 📸 Screenshots
 ### Screenshot of the web application: 
-<img src="readme_images/screenshot_1.PNG" width="950" height="550">
+<img src="readme_images/screenshot_1.png" width="950" height="550">
 
 <br>
 
 ### Screenshot of the chat interface:
-<img src="readme_images/screenshot_2.PNG" width="350" height="450">
+<img src="readme_images/screenshot_2.png" width="350" height="450">
 
 <br>
 
