@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Dict, Optional, Any
+from typing import Any, Dict, List, Optional
 
 from langchain_text_splitters import (
     MarkdownHeaderTextSplitter,
@@ -29,7 +29,6 @@ class Chunker:
                 ("###", "header_3"),
             ]
 
-        # Initialize LangChain splitters
         self.recursive_splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
@@ -38,7 +37,7 @@ class Chunker:
 
         self.markdown_splitter = MarkdownHeaderTextSplitter(
             headers_to_split_on=headers_to_split_on,
-            strip_headers=False,  # Crucial for preserving structural layout context
+            strip_headers=False,  # preserving structural layout context
         )
 
     def _extract_section_name(self, metadata: Dict[str, Any]) -> Optional[str]:
