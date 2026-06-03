@@ -120,19 +120,20 @@ The application combines Semantic Search, Vector Databases, Cross-Encoder Rerank
           │                                   │
           ▼                                   ▼
 
-    Similarity Search                   Similarity Search
+    Similarity Search                 Similarity Search
           │                                   │
           ▼                                   ▼
 
      Cohere Reranker                  Retrieved Chunks
-          │
-          ▼
+          │                                   |
+          ▼                                   ▼
 
-     Groq LLM Generator
-          │
-          ▼
+     Groq LLM Generator               Groq LLM Generator
+          │                                   |
+          ▼                                   ▼
 
-      Final Answer
+      Final Answer                      Final Answer
+         
 ```
 
 <br>
