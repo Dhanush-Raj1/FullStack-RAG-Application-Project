@@ -131,11 +131,12 @@ class VectorStore:
 
             for key, value in filters.items():
                 if key in allowed_fields:
-                    where_clauses.append(f"{key} = %s")
-                    query_params.append(value)
+                    where_clauses.append(f"{key} = %s")   # "file_type = %s"
+                    query_params.append(value)            # the value for the filter, e.g. "pdf" for file_type and query_params becomes [[0.12, -0.4, ...], "pdf"]
 
         if where_clauses:
-            query += " WHERE " + " AND ".join(where_clauses)
+            query += " WHERE " + " AND ".join(where_clauses)# eg: SELECT ... FROM document_chunks WHERE file_type = %s   
+                                                            # eg: if there are multiple filters: query WHERE file_type = %s AND parent_document_id = %s
 
         query += " ORDER BY embedding <=> %s::VECTOR LIMIT %s;"
         query_params.append(query_embedding)  # For ORDER BY
