@@ -4,11 +4,12 @@ from typing import List
 
 from src.core.embedding import GeminiEmbeddingGenerator
 from src.core.llama_generator import Generator
+from src.core.chunker import Chunker
 from src.core.reranker import CohereReranker
 from src.core.retriever import Retriever
 from src.core.vector_store import VectorStore
 from src.models.document import ChunkOut, QueryRequest, QueryResponse
-from src.utils.config import EMBEDDING_MODEL, LLM_MODEL, RERANKER_MODEL, TOP_K, TOP_N
+from src.utils.config import CHUNK_SIZE, CHUNK_OVERLAP, EMBEDDING_MODEL, LLM_MODEL, RERANKER_MODEL, TOP_K, TOP_N
 from session_pipeline import SessionPipelineManager, SESSION_INDEX_REGISTRY
 
 app = FastAPI(title="RAG Application")
@@ -32,8 +33,8 @@ retriever = Retriever(
     reranker=reranker,
 )
 generator = Generator(model_name=LLM_MODEL)
-
-session_manager = SessionPipelineManager(embedding_generator=embedding_generator)
+chunker = Chunker(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
+session_manager = SessionPipelineManager(embedding_generator=embedding_generator, chunker=chunker)
 
 @app.post("/api/chat/global", response_model=QueryResponse)
 async def chat_endpoint(request: QueryRequest):
@@ -42,10 +43,8 @@ async def chat_endpoint(request: QueryRequest):
         if not request.question.strip():
             raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
-        # 1. Retrieve & Rerank (Retriever class handles the query embedding natively inside)
         retrieved_docs = retriever.retrieve(query=request.question)
 
-        # 2. Generate final answer
         answer = generator.generate_answer(
             question=request.question, retrieved_chunks=retrieved_docs
         )
@@ -96,13 +95,11 @@ async def chat_session_documents(
         raise HTTPException(status_code=404, detail="No active document workspace found for this session ID.")
 
     try:
-        # 1. Call Isolated FAISS Retrieval Component
         retrieved_chunks = session_manager.query_session_store(
             question=request.question, 
             session_id=x_session_id
         )
 
-        # 2. Generate answer using the SAME shared Groq LLM Client
         answer = generator.generate_answer(
             question=request.question, retrieved_chunks=retrieved_chunks
         )
