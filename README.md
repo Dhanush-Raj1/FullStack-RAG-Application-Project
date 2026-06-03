@@ -40,7 +40,7 @@ The application combines Semantic Search, Vector Databases, Cross-Encoder Rerank
 
 <br>
 
-## 🎯 Project Overview
+# 🎯 Project Overview
 
 ### 1. Multi-Format Document Support
 - Supports ingestion of **PDF, Markdown, and Plain Text** documents
