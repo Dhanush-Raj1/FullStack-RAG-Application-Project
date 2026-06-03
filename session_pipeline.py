@@ -10,7 +10,6 @@ from src.models.document import Document, DocumentMetadata, DocumentRetrievalRes
 from src.core.chunker import Chunker
 from src.core.embedding import GeminiEmbeddingGenerator
 
-# Global in-memory index dictionary
 # Format: { session_id: (faiss_index, list_of_chunk_documents) }
 SESSION_INDEX_REGISTRY: Dict[str, Tuple[faiss.Index, List[Document]]] = {}
 
@@ -31,7 +30,7 @@ class SessionPipelineManager:
         if file_extension == ".pdf":
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
                 temp_pdf.write(file_bytes)
-                temp_pdf_path = temp_pdf.name    # a safe string path (e.g., 'C:/Temp/xyz.pdf')
+                temp_pdf_path = temp_pdf.name    # a safe temp path (e.g., 'C:/Temp/xyz.pdf')
 
             try: 
                 pages_data = pymupdf4llm.to_markdown(temp_pdf_path, page_chunks=True)
@@ -79,13 +78,11 @@ class SessionPipelineManager:
             raise ValueError("The uploaded file contains no extractable text content.")
 
        
-        # Chunking
         chunked_docs = self.chunker.chunk_documents(documents)
 
         if not chunked_docs:
             raise ValueError("No text chunks could be generated from the uploaded file(s).")
 
-        # embedding 
         raw_embeddings = []
         for chunk in chunked_docs:
             vector = self.embedding_generator.embed_text(chunk.page_content)
@@ -101,7 +98,7 @@ class SessionPipelineManager:
         # Map to our dynamic runtime session state tracking
         SESSION_INDEX_REGISTRY[session_id] = (faiss_index, chunked_docs)
 
-        # ==================== 🕵️‍♂️ BEHIND THE SCENES DEBUG PRINTS ====================
+    
         print("\n" + "="*50)
         print(f"🔍 [FAISS REGISTRATION DEBUG] Session ID: '{session_id}'")
         print(f"📄 File Registered: {filename} ({file_extension})")
@@ -116,7 +113,6 @@ class SessionPipelineManager:
             page_info = f" | Page: {doc.metadata.page}" if doc.metadata.page else ""
             print(f"  [FAISS Vector Index #{idx}] -> {snippet}{page_info}")
         print("="*50 + "\n")
-        # ===========================================================================
 
         return {
             "status": "registered",
@@ -135,7 +131,6 @@ class SessionPipelineManager:
         # pulls the FAISS index and its corresponding chunked documents from the session registry
         faiss_index, chunked_docs = SESSION_INDEX_REGISTRY[session_id]
         
-        # Embed question using your active generator
         query_vector = np.array([self.embedding_generator.embed_query(question)]).astype('float32')
         
         # Search index
