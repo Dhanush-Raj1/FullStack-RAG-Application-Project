@@ -87,7 +87,7 @@ class SessionPipelineManager:
 
         raw_embeddings = []
  
-        embedded_docs = self.embedding_generator.embed_text(chunked_docs)
+        embedded_docs, valid_chunks = self.embedding_generator.embed_text(chunked_docs)
 
         if not embedded_docs:
             raise ValueError("Failed to generate batch embeddings.")
@@ -101,12 +101,12 @@ class SessionPipelineManager:
         if session_id in SESSION_INDEX_REGISTRY:
             faiss_index, existing_chunks = SESSION_INDEX_REGISTRY[session_id]
             faiss_index.add(embeddings_matrix)           # append new vectors to existing index
-            existing_chunks.extend(chunked_docs)         # append new chunks to existing list 
+            existing_chunks.extend(valid_chunks)         # append new chunks to existing list 
         else: 
             # session doesn't exist yet, create new index 
             faiss_index = faiss.IndexFlatL2(dimension)   # initialize new index 
             faiss_index.add(embeddings_matrix)           # add vectors to the new index
-            SESSION_INDEX_REGISTRY[session_id] = (faiss_index, chunked_docs)    # register new session with its index and chunks
+            SESSION_INDEX_REGISTRY[session_id] = (faiss_index, valid_chunks)    # register new session with its index and chunks
 
         print("\n" + "=" * 50)
         print(f"🔍 [FAISS REGISTRATION DEBUG] Session ID: '{session_id}'")
@@ -118,7 +118,7 @@ class SessionPipelineManager:
         print("-" * 50)
 
         print("📝 CHUNKS STORED IN REGISTRY (Mapping confirmation):")
-        for idx, doc in enumerate(chunked_docs):
+        for idx, doc in enumerate(valid_chunks):
             # Truncate text context for cleaner log presentation
             snippet = (
                 doc.page_content.replace("\n", " ")[:75] + "..."
@@ -132,7 +132,7 @@ class SessionPipelineManager:
         return {
             "status": "registered",
             "filename": filename,
-            "chunks_count": len(chunked_docs),
+            "chunks_count": len(valid_chunks),
             "session_id": session_id,
         }
 
