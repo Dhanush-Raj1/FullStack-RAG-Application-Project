@@ -32,10 +32,17 @@ class GeminiEmbeddingGenerator:
         Generate embeddings and returns a list of dictionaries pairing the generated vector with source text properties.
         """
         
+        print("hello")
         if not chunks:
             return []
 
-        texts_to_embed = [chunk.page_content for chunk in chunks]
+        valid_chunks = [c for c in chunks if c.page_content and c.page_content.strip()]
+
+        if not valid_chunks:
+            raise ValueError("All chunks are empty after filtering — nothing to embed.")
+
+        texts_to_embed = [chunk.page_content.strip() for chunk in valid_chunks]
+        # texts_to_embed = [chunk.page_content for chunk in chunks]
         all_embeddings = []
 
         SAFE_BATCH_SIZE = 15
@@ -49,7 +56,7 @@ class GeminiEmbeddingGenerator:
             total_batches = (len(texts_to_embed) + SAFE_BATCH_SIZE - 1) // SAFE_BATCH_SIZE
 
             logger.info(f"🚀 Sending batch {current_batch_num}/{total_batches} (Size: {len(batch)})...")
-           # print(f"🚀 Sending batch {current_batch_num}/{total_batches} (Size: {len(batch)})...")
+            print(f"🚀 Sending batch {current_batch_num}/{total_batches} (Size: {len(batch)})...")
 
             response = self.client.models.embed_content(
                 model=self.model_name,
@@ -62,6 +69,8 @@ class GeminiEmbeddingGenerator:
             
             if i + SAFE_BATCH_SIZE < len(texts_to_embed): 
                 time.sleep(10)
+        
+        print("hello")
         
         embedded_docs = []
 
