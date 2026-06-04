@@ -86,19 +86,27 @@ class SessionPipelineManager:
             )
 
         raw_embeddings = []
-        for chunk in chunked_docs:
-            vector = self.embedding_generator.embed_text(chunk.page_content)
-            raw_embeddings.append(vector)
+ 
+        embedded_docs = self.embedding_generator.embed_text(chunked_docs)
+
+        if not embedded_docs:
+            raise ValueError("Failed to generate batch embeddings.")
+
+        raw_embeddings = [doc["embedding"] for doc in embedded_docs]
 
         embeddings_matrix = np.atleast_2d(raw_embeddings).astype("float32")
-
-        # In-memory FAISS index
         dimension = embeddings_matrix.shape[1]
-        faiss_index = faiss.IndexFlatL2(dimension)
-        faiss_index.add(embeddings_matrix)
 
-        # Map to our dynamic runtime session state tracking
-        SESSION_INDEX_REGISTRY[session_id] = (faiss_index, chunked_docs)
+        # If the session already exists, we append to the existing index and chunk list
+        if session_id in SESSION_INDEX_REGISTRY:
+            faiss_index, existing_chunks = SESSION_INDEX_REGISTRY[session_id]
+            faiss_index.add(embeddings_matrix)           # append new vectors to existing index
+            existing_chunks.extend(chunked_docs)         # append new chunks to existing list 
+        else: 
+            # session doesn't exist yet, create new index 
+            faiss_index = faiss.IndexFlatL2(dimension)   # initialize new index 
+            faiss_index.add(embeddings_matrix)           # add vectors to the new index
+            SESSION_INDEX_REGISTRY[session_id] = (faiss_index, chunked_docs)    # register new session with its index and chunks
 
         print("\n" + "=" * 50)
         print(f"🔍 [FAISS REGISTRATION DEBUG] Session ID: '{session_id}'")
