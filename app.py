@@ -104,11 +104,12 @@ async def chat_session_documents(
             question=request.question, retrieved_chunks=retrieved_chunks
         )
 
-        chunks_payload = [
-            ChunkOut(content=c.text, source=c.source, score=c.score) 
-            for c in retrieved_chunks
+        # map the properties to the 'ChunkOut' model to send to the frontend UI
+        output_chunks = [
+            ChunkOut(content=chunk.text, source=chunk.source, score=chunk.score) 
+            for chunk in retrieved_chunks
         ]
-        return QueryResponse(answer=answer, chunks=chunks_payload)
+        return QueryResponse(answer=answer, chunks=output_chunks)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
