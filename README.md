@@ -113,9 +113,9 @@ The application combines Semantic Search, Vector Databases, Cross-Encoder Rerank
          ▼                                       ▼
 
  ┌─────────────────┐                 ┌─────────────────┐
- │ Global RAG      │                 │ Session RAG     │
- │ PostgreSQL      │                 │ FAISS           │
- │ + pgvector      │                 │ In-Memory Index │
+ │   Global RAG    │                 │   Session RAG   │
+ │    pgvector     │                 │     FAISS       │
+ │      Neon       │                 │ In-Memory Index │
  └────────┬────────┘                 └────────┬────────┘
           │                                   │
           ▼                                   ▼
@@ -141,7 +141,7 @@ The application combines Semantic Search, Vector Databases, Cross-Encoder Rerank
 # 🏗️ Tech Stack
 - **Python**
 - **FastAPI** (Backend API framework with Pydantic & Psycopg)
-- **PostgreSQL + pgvector** (Persistent vector database)
+- **PostgreSQL + pgvector** (`Neon`) (Persistent vector database)
 - **Google Gemini Embeddings** (`gemini-embedding-001`)
 - **Cohere Rerank** (`rerank-v3.5` for cross-encoder reranking)
 - **FAISS** (In-memory vector index for session-based retrieval)
@@ -182,7 +182,7 @@ fullstack-rag-application
 │   │   └── vector_store.py           # pgvector and FAISS store management
 │   ├── loaders/                      # Document loaders for each file type (pdf, md, txt)
 │   ├── preprocess/                   # Document cleaners for each file type (pdf, md, txt)
-│   ├── models/                       # Pydantic data models
+│   ├── models/                       # Data models schema
 │   └── utils/                        # Config and path utility helpers
 │
 ├── app.py                            # FastAPI application and route definitions
@@ -291,7 +291,7 @@ Chunking
 Gemini Embeddings
     │
     ▼
-pgvector Store
+pgvector Store (Neon)
     │
     ▼
 Similarity Search
@@ -300,7 +300,7 @@ Similarity Search
 Cohere Reranking
     │
     ▼
-Groq LLM
+Groq LLM (Llama 3.3 70B)
     │
     ▼
 Grounded Response
