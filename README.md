@@ -73,12 +73,25 @@ The application combines Semantic Search, Vector Databases, Cross-Encoder Rerank
 ### 7. LLM Answer Generation
 - Integrated **Llama 3.3 70B Versatile** via **Groq** for fast, grounded answer generation
 - The model only answers from retrieved context, cites sources, reduces hallucinations, and returns explainable responses
+- Separate temperature settings for conversational replies vs. retrieval-grounded answers
 
-### 8. Session-Based Document Chat
+### 8. Intent-Aware Query Routing
+- Every user query is classified as **CONVERSATIONAL** or **RETRIEVAL** before any processing
+- Conversational queries (greetings, capability questions, small talk) are handled directly by the LLM — no retrieval triggered
+- Retrieval queries are routed through the full RAG pipeline
+- Uses **Gemini Flash** (`gemini-2.0-flash-lite`) as a lightweight, low-latency classifier — preserving Groq token quota for generation
+  
+### 9. Conversation Memory
+- Implements **sliding window memory** storing the last 10 messages (user + assistant) per session
+- Memory is scoped per session ID — each browser tab maintains isolated conversation history
+- History is injected into both conversational and retrieval responses, enabling natural follow-up questions
+- Supports coreference resolution — vague queries like "what does it mean?" or "tell me more" are rewritten into self-contained search queries before retrieval
+
+### 10. Session-Based Document Chat
 - Users can upload documents at runtime; these are chunked, embedded, and indexed in **FAISS** without modifying the global database
 - Provides temporary workspaces with fast retrieval and session isolation
 
-### 9. Modern React Frontend
+### 11. Modern React Frontend
 - Built with **React, TypeScript, Vite, and Tailwind CSS**
 - Features a chat interface, source chunk viewer, session uploads, responsive design, and real-time API integration
 
@@ -91,13 +104,16 @@ The application combines Semantic Search, Vector Databases, Cross-Encoder Rerank
 - **Cross-Encoder Reranking**: Uses **Cohere rerank-v3.5** to improve retrieval precision
 - **Grounded LLM Answers**: **Llama 3.3 70B** via Groq answers only from retrieved context, reducing hallucinations
 - **Session-Based Chat**: Upload documents at runtime, indexed in **FAISS** without touching the global database
+- **Intent-Aware Routing**: Classifies every query as conversational or retrieval — greetings and small talk never trigger unnecessary vector search
+- **Conversation Memory**: Sliding window memory per session enables natural multi-turn conversations and follow-up questions
+- **Query Rewriting**: Vague coreference queries are automatically rewritten into precise search queries using conversation history
 - **Source Transparency**: Every answer includes source chunks so users can verify the retrieved context
 - **Modern Frontend**: Responsive chat UI built with **React, TypeScript, and Tailwind CSS**
 
 <br>
 
 # 🏗️ System Architecture
-
+    
 ```text
                     ┌──────────────────┐
                     │ React Frontend   │
@@ -108,45 +124,59 @@ The application combines Semantic Search, Vector Databases, Cross-Encoder Rerank
                     │ FastAPI Backend  │
                     └────────┬─────────┘
                              │
-         ┌───────────────────┼───────────────────┐
-         │                                       │
-         ▼                                       ▼
-
- ┌─────────────────┐                 ┌─────────────────┐
- │   Global RAG    │                 │   Session RAG   │
- │    pgvector     │                 │     FAISS       │
- │      Neon       │                 │ In-Memory Index │
- └────────┬────────┘                 └────────┬────────┘
-          │                                   │
-          ▼                                   ▼
-
-    Similarity Search                 Similarity Search
-          │                                   │
-          ▼                                   ▼
-
-     Cohere Reranker                  Retrieved Chunks
-          │                                   |
-          ▼                                   ▼
-
-     Groq LLM Generator               Groq LLM Generator
-          │                                   |
-          ▼                                   ▼
-
-      Final Answer                      Final Answer
-         
+                    ┌────────▼─────────┐
+                    │  Query Router    │  ← Gemini Flash (intent classification)
+                    └────────┬─────────┘
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+              ▼                             ▼
+     CONVERSATIONAL                     RETRIEVAL
+              │                             │
+              │                    ┌────────▼────────┐
+              │                    │  Query Rewriter │  ← resolves coreferences
+              │                    └────────┬────────┘
+              │                             │
+              │          ┌──────────────────┼──────────────────┐
+              │          │                                     │
+              │          ▼                                     ▼
+              │  ┌───────────────┐                 ┌─────────────────┐
+              │  │  Global RAG   │                 │   Session RAG   │
+              │  │   pgvector    │                 │     FAISS       │
+              │  │     Neon      │                 │ In-Memory Index │
+              │  └───────┬───────┘                 └────────┬────────┘
+              │          │                                   │
+              │          ▼                                   ▼
+              │    Similarity Search               Similarity Search
+              │          │                                   │
+              │          ▼                                   │
+              │   Cohere Reranker                            │
+              │          │                                   │
+              └──────────┴───────────────────────────────────┘
+                         │
+                         ▼
+              ┌─────────────────────┐
+              │  Groq LLM Generator │  ← history + context injected
+              │  (+ Memory/History) │
+              └─────────┬───────────┘
+                        │
+                        ▼
+                   Final Answer
 ```
 
 <br>
 
 # 🏗️ Tech Stack
 - **Python**
-- **FastAPI** (Backend API framework with Pydantic & Psycopg)
-- **PostgreSQL + pgvector** (`Neon`) (Persistent vector database)
-- **Google Gemini Embeddings** (`gemini-embedding-001`)
-- **Cohere Rerank** (`rerank-v3.5` for cross-encoder reranking)
-- **FAISS** (In-memory vector index for session-based retrieval)
-- **Groq API** (Accessing Llama 3.3 70B Versatile)
 - **PyMuPDF4LLM + LangChain Text Splitters** (Document processing)
+- **Google Gemini Embeddings** (`gemini-embedding-001`)
+- **PostgreSQL + pgvector** (`Neon`) (Persistent vector database)
+- **FAISS** (In-memory vector index for session-based retrieval)
+- **Cohere Rerank** (`rerank-v3.5` for cross-encoder reranking)
+- **Gemini Flash** (`gemini-2.0-flash-lite`) (Intent classification / query routing)
+- **Sliding Window Memory** (Per-session conversation history via in-memory registry)
+- **Groq API** (Accessing Llama 3.3 70B Versatile)
+- **FastAPI** (Backend API framework with Pydantic & Psycopg)
 - **React + TypeScript + Vite** (Modern frontend)
 - **Tailwind CSS** (Frontend styling)
 
@@ -176,10 +206,12 @@ fullstack-rag-application
 │   ├── core/                         # Main RAG pipeline modules
 │   │   ├── chunker.py                # Document chunking logic
 │   │   ├── embedding.py              # Gemini embedding generation
-│   │   ├── generator.py              # Groq LLM answer generation
 │   │   ├── reranker.py               # Cohere cross-encoder reranking
 │   │   ├── retriever.py              # Vector similarity retrieval
 │   │   └── vector_store.py           # pgvector and FAISS store management
+│   │   ├── query_router.py           # Intent classifier (CONVERSATIONAL vs RETRIEVAL)
+│   │   ├── memory.py                 # Sliding window conversation memory + session registry
+│   │   ├── llama_generator.py        # Groq LLM answer generation
 │   ├── loaders/                      # Document loaders for each file type (pdf, md, txt)
 │   ├── preprocess/                   # Document cleaners for each file type (pdf, md, txt)
 │   ├── models/                       # Data models schema
@@ -236,7 +268,7 @@ python ingest.py
 ```bash
 uvicorn app:app --reload
 ```
-Backend available at `http://localhost:8000` — Swagger docs at `http://localhost:8000/docs`
+Backend available at `http://localhost:8000`,  Swagger docs at `http://localhost:8000/docs`
 
 ### 7️⃣ Run the Frontend
 ```bash
@@ -260,7 +292,7 @@ Frontend available at `http://localhost:5173`
     - "What are the main conclusions?"
 - **Source Verification**: Every answer displays the retrieved source chunks so you can verify context
 - **API Access**:
-    - Global chat: `POST /api/chat/global`
+    - Global chat: `POST /api/chat/global` with `x-session-id` header
     - Session chat: `POST /api/chat/session` with `x-session-id` header
     - Upload: `POST /api/upload` with `x-session-id` header
 
@@ -276,34 +308,66 @@ The dataset covers **30 primary evaluation pairs** and **5 documented failed cas
 
 <br>
 
-# 📊 Retrieval Pipeline
+# 📊 Pipelines
 
+## Ingestion Pipeline
 ```text
-Documents Loader
+Documents (PDF, Markdown, TXT)
     │
     ▼
-Preprocessing
+Document Loader
     │
     ▼
-Chunking
+Preprocessing & Cleaning
     │
     ▼
-Gemini Embeddings
+Metadata-Aware Chunking
+    │
+    ▼
+Gemini Embeddings (gemini-embedding-001)
     │
     ▼
 pgvector Store (Neon)
+```
+
+## Query Pipeline
+```text
+User Query
     │
     ▼
-Similarity Search
+Intent Classifier (Gemini Flash)
     │
-    ▼
-Cohere Reranking
-    │
-    ▼
-Groq LLM (Llama 3.3 70B)
-    │
-    ▼
-Grounded Response
+    ├──── CONVERSATIONAL ────────────────────────────┐
+    │                                                │
+    └──── RETRIEVAL                                  │
+              │                                      │
+              ▼                                      │
+    Coreference Check                                │
+    (needs rewrite?)                                 │
+       │          │                                  │
+      YES         NO                                 │
+       │          │                                  │
+       ▼          │                                  │
+    Query         │                                  │
+    Rewriter      │                                  │
+       │          │                                  │
+       └────┬─────┘                                  │
+            │                                        │
+            ▼                                        │
+    Similarity Search                                │
+    (pgvector / FAISS)                               │
+            │                                        │
+            ▼                                        │
+    Cohere Reranking                                 │
+            │                                        │
+            └──────────────┬─────────────────────────┘
+                           │
+                           ▼
+              Groq LLM — Llama 3.3 70B
+              (context + memory injected)
+                           │
+                           ▼
+                   Grounded Response
 ```
 
 <br>
@@ -313,6 +377,10 @@ Grounded Response
 ## Global Knowledge Base Chat
 ```http
 POST /api/chat/global
+```
+Headers:
+```text
+x-session-id: session_123
 ```
 Request:
 ```json
@@ -359,9 +427,9 @@ Request:
 <br>
 
 # 🎯 Future Improvements
-- User authentication and chat history persistence
 - Hybrid search (BM25 + Dense Retrieval)
 - HNSW indexing
+- Persistent conversation memory across sessions (database-backed)
 - Multi-modal retrieval
 - Citation highlighting in the UI
 - Docker and Kubernetes deployment
