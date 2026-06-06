@@ -1,10 +1,11 @@
 import os
-from typing import List
+from typing import List, Dict
 
 from dotenv import load_dotenv
 from groq import Groq
 
 from src.models.document import DocumentRetrievalResult
+from src.core.memory import ConversationMemory
 
 
 class Generator:
@@ -46,7 +47,7 @@ class Generator:
 
         return "\n\n".join(context_parts)
 
-    def chat(self, query: str) -> str:
+    def chat(self, query: str, history: List[Dict] = []) -> str:
         """
         Handles conversational queries that don't need document retrieval.
         """
@@ -61,22 +62,26 @@ class Generator:
         in the knowledge base or from the uploaded documents and you'll find and summarize relevant information.        
         """
 
+        messages = [{"role": "system", "content": prompt}]
+        messages.extend(history)
+        messages.append({"role": "user", "content": query})
+
         response = self.client.chat.completions.create(
             model=self.model,
-            messages=[
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": query},
-            ],
+            messages=messages,
             temperature=self.chat_temperature,
         )
         return response.choices[0].message.content
 
     def generate_answer(
-        self, question: str, retrieved_chunks: List[DocumentRetrievalResult]
+        self,
+        question: str,
+        retrieved_chunks: List[DocumentRetrievalResult],
+        history: List[Dict] = [],
     ) -> str:
         context = self.build_context(retrieved_chunks)
 
-        prompt = f"""
+        prompt = """
             You are a helpful assistant answering questions using retrieved document context.
 
             Instructions:
@@ -84,18 +89,23 @@ class Generator:
             - If the answer is not contained in the context, say:
               "I could not find the answer in the provided documents."
             - Be concise and accurate.
-
-            Context:
+        """
+        user_message = f"""
+        Context: 
             {context}
 
-            Question:
+        Question:
             {question}
         """
 
-        # Switched to Groq's chat completion interface structure
+
+        messages = [{"role": "system", "content": prompt}]
+        messages.extend(history)
+        messages.append({"role": "user", "content": user_message})
+
         response = self.client.chat.completions.create(
             model=self.model,
-            messages=[{"role": "user", "content": prompt}],
+            messages=messages,
             temperature=self.retrieve_temperature,
         )
 
