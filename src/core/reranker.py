@@ -8,14 +8,14 @@ from src.models.document import DocumentRetrievalResult
 
 
 class CohereReranker:
-    def __init__(self, model_name: str, top_n: int = 5):
+    def __init__(self, model: str, top_n: int = 5):
         load_dotenv()
         api_key = os.getenv("COHERE_API_KEY")
         if not api_key:
             raise ValueError("COHERE_API_KEY not found in environment variables.")
 
         self.client = cohere.ClientV2(api_key=api_key)
-        self.model_name = model_name
+        self.model = model
         self.top_n = top_n
 
     def rerank(
@@ -33,7 +33,7 @@ class CohereReranker:
         texts_to_rerank = [doc.text for doc in documents]
 
         response = self.client.rerank(
-            model=self.model_name, query=query, documents=texts_to_rerank, top_n=top_n
+            model=self.model, query=query, documents=texts_to_rerank, top_n=top_n
         )
 
         reranked_results = []
