@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class GeminiEmbeddingGenerator:
-    def __init__(self, model_name: str):
+    def __init__(self, model: str):
         load_dotenv()
 
         api_key = os.getenv("GEMINI_API_KEY")
@@ -23,7 +23,7 @@ class GeminiEmbeddingGenerator:
             raise ValueError("GEMINI_API_KEY not found in environment.")
 
         self.client = genai.Client(api_key=api_key)
-        self.model_name = model_name
+        self.model = model
         # Gemini API hard limit for a single batch operation
         self._MAX_BATCH_SIZE = 100
 
@@ -68,7 +68,7 @@ class GeminiEmbeddingGenerator:
             )
 
             response = self.client.models.embed_content(
-                model=self.model_name,
+                model=self.model,
                 contents=batch,
                 config=types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT"),
             )
@@ -99,7 +99,7 @@ class GeminiEmbeddingGenerator:
         Embeds incoming user's query.
         """
         response = self.client.models.embed_content(
-            model=self.model_name,
+            model=self.model,
             contents=query,
             config=types.EmbedContentConfig(task_type="RETRIEVAL_QUERY"),
         )
@@ -138,7 +138,7 @@ class GeminiEmbeddingGenerator:
             )
 
             response = self.client.models.embed_content(
-                model=self.model_name,
+                model=self.model,
                 contents=batch,
                 config=types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT"),
             )
