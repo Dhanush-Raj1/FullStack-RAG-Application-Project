@@ -15,4 +15,10 @@ TOP_K = 10
 TOP_N = 5
 RERANKER_MODEL = "rerank-v3.5"  # rerank-v4.0-pro,   rerank-v4.0-fast,   rerank-english-v3.0
 
-LLM_MODEL = "llama-3.3-70b-versatile"                        # "gemini-3.5-flash"        # "gemini-2.0-flash"      
+ROUTER_MODEL = "gemini-3.1-flash-lite"
+ROUTER_TEMPERATURE = 0.0
+
+FINAL_MODEL = "llama-3.3-70b-versatile"                        # "gemini-3.5-flash"        # "gemini-2.0-flash"      
+CHAT_TEMPERATURE = 0.7
+RETRIEVE_TEMPERATURE = 0.4
+
