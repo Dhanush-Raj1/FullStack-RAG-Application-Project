@@ -1,14 +1,16 @@
 from fastapi import FastAPI, HTTPException, Header, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
+from typing import List, Dict
 
 from src.core.embedding import GeminiEmbeddingGenerator
-from src.core.llama_generator import Generator
 from src.core.chunker import Chunker
+from src.core.vector_store import VectorStore
 from src.core.reranker import CohereReranker
 from src.core.retriever import Retriever
-from src.core.vector_store import VectorStore
 from src.core.query_router import QueryRouter
+from src.core.memory import MemoryManager
+from src.core.llama_generator import Generator
+from session_pipeline import SessionPipelineManager, SESSION_INDEX_REGISTRY
 from src.models.document import ChunkOut, QueryRequest, QueryResponse
 from src.utils.config import (
     CHUNK_SIZE,
@@ -23,7 +25,7 @@ from src.utils.config import (
     CHAT_TEMPERATURE,
     RETRIEVE_TEMPERATURE,
 )
-from session_pipeline import SessionPipelineManager, SESSION_INDEX_REGISTRY
+
 
 app = FastAPI(title="RAG Application")
 
@@ -32,7 +34,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "https://rag-frontend-b75n.onrender.com",
-    ],  # Vite's default local port and deployed frontend URL
+    ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -50,31 +52,50 @@ retriever = Retriever(
     reranker=reranker,
 )
 router = QueryRouter(model=ROUTER_MODEL, temperature=ROUTER_TEMPERATURE)
-generator = Generator(model=FINAL_MODEL, chat_temperature=CHAT_TEMPERATURE, retrieve_temperature=RETRIEVE_TEMPERATURE)
+generator = Generator(
+    model=FINAL_MODEL,
+    chat_temperature=CHAT_TEMPERATURE,
+    retrieve_temperature=RETRIEVE_TEMPERATURE,
+)
 session_manager = SessionPipelineManager(
     embedding_generator=embedding_generator, chunker=chunker
 )
+memory_manager = MemoryManager(window_size=10)
 
 
 @app.post("/api/chat/global", response_model=QueryResponse)
-async def chat_endpoint(request: QueryRequest):
+async def chat_endpoint(
+    request: QueryRequest,
+    x_session_id: str = Header(..., description="Session ID for memory tracking"),
+):
     """Queries the pg vector_store and generates answer"""
     try:
         if not request.question.strip():
             raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
+        memory = memory_manager.get_or_create_memory(x_session_id)
+        history = memory.get_history()
         intend = router.classify(request.question)
 
         if intend == "CONVERSATIONAL":
-            answer = generator.chat(request.question)
-            return QueryResponse(answer=answer, chunks=[])    # no chunks to return for conversational queries
+            answer = generator.chat(request.question, history=history)
+
+            memory.add("user", request.question)
+            memory.add("assistant", answer)
+
+            return QueryResponse(
+                answer=answer,
+                chunks=[],  # no chunks to return for conversational queries
+            )
 
         # Only reaches here for RETRIEVAL intents
         retrieved_docs = retriever.retrieve(query=request.question)
 
         answer = generator.generate_answer(
-            question=request.question, retrieved_chunks=retrieved_docs
+            question=request.question, retrieved_chunks=retrieved_docs, history=history
         )
+        memory.add("user", request.question)
+        memory.add("assistant", answer)
 
         chunk_out = [
             ChunkOut(content=doc.text, source=doc.source, score=doc.score)
@@ -127,19 +148,31 @@ async def chat_session_documents(
         )
 
     try:
+        memory = memory_manager.get_or_create_memory(x_session_id)
+        history = memory.get_history()
         intend = router.classify(request.question)
 
-        if intend == "CONVERSATIONAL": 
-            answer = generator.chat(request.question)
-            return QueryResponse(answer=answer, chunks=[])  # no chunks to return for conversational queries
+        if intend == "CONVERSATIONAL":
+            answer = generator.chat(request.question, history=history)
+
+            memory.add("user", request.question)
+            memory.add("assistant", answer)
+
+            return QueryResponse(
+                answer=answer,
+                chunks=[],  # no chunks to return for conversational queries
+            )
 
         retrieved_chunks = session_manager.query_session_store(
             question=request.question, session_id=x_session_id
         )
 
         answer = generator.generate_answer(
-            question=request.question, retrieved_chunks=retrieved_chunks
+            question=request.question, retrieved_chunks=retrieved_chunks, history=history
         )
+
+        memory.add("user", request.question)
+        memory.add("assistant", answer)
 
         # map the properties to the 'ChunkOut' model to send to the frontend UI
         output_chunks = [
