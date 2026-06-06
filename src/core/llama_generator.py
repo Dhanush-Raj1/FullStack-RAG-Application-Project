@@ -2,43 +2,79 @@ import os
 from typing import List
 
 from dotenv import load_dotenv
-from groq import Groq  
+from groq import Groq
 
 from src.models.document import DocumentRetrievalResult
 
 
 class Generator:
-    def __init__(self, model_name: str):
+    def __init__(
+        self,
+        model: str,
+        chat_temperature: float,
+        retrieve_temperature: float,
+    ):
         load_dotenv()
 
         api_key = os.getenv("GROQ_API_KEY")
 
         if not api_key:
-            raise ValueError("GROQ_API_KEY not found inside environmental configuration.")
+            raise ValueError(
+                "GROQ_API_KEY not found inside environmental configuration."
+            )
 
         # Initialize the official Groq client wrapper
         self.client = Groq(api_key=api_key)
-        self.model_name = model_name
+        self.model = model
+        self.chat_temperature = chat_temperature
+        self.retrieve_temperature = retrieve_temperature
 
-    def _build_context(self, retrieved_chunks: List[DocumentRetrievalResult]) -> str:
+    def build_context(self, retrieved_chunks: List[DocumentRetrievalResult]) -> str:
         context_parts = []
 
         for idx, chunk in enumerate(retrieved_chunks, start=1):
-            context_parts.append(f"""
+            context_parts.append(
+                f"""
                 [Chunk {idx}]
                 Source: {chunk.source}
                 Page: {chunk.page}
                 Section: {chunk.section}
 
                 {chunk.text}
-            """.strip())
+            """.strip()
+            )
 
         return "\n\n".join(context_parts)
+
+    def chat(self, query: str) -> str:
+        """
+        Handles conversational queries that don't need document retrieval.
+        """
+        prompt = """
+        You are a helpful RAG assistant with two core capabilities:
+        1. Answer questions from a built-in knowledge base of tech specs, space mission records, and architecture docs.
+        2. Accept user-uploaded documents (PDF, Markdown, TXT) and answer questions from them.
+
+
+        For greetings, small talk, or questions about your capabilities — respond naturally and concisely.
+        When asked what you can do, explain that users can ask questions about the documents 
+        in the knowledge base or from the uploaded documents and you'll find and summarize relevant information.        
+        """
+
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": query},
+            ],
+            temperature=self.chat_temperature,
+        )
+        return response.choices[0].message.content
 
     def generate_answer(
         self, question: str, retrieved_chunks: List[DocumentRetrievalResult]
     ) -> str:
-        context = self._build_context(retrieved_chunks)
+        context = self.build_context(retrieved_chunks)
 
         prompt = f"""
             You are a helpful assistant answering questions using retrieved document context.
@@ -48,7 +84,6 @@ class Generator:
             - If the answer is not contained in the context, say:
               "I could not find the answer in the provided documents."
             - Be concise and accurate.
-            - Mention the source i.e source, page, section.
 
             Context:
             {context}
@@ -57,13 +92,11 @@ class Generator:
             {question}
         """
 
-        # 👈 Switched to Groq's chat completion interface structure
+        # Switched to Groq's chat completion interface structure
         response = self.client.chat.completions.create(
-            model=self.model_name,
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.2, # Low temperature forces stricter grounding adherence
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=self.retrieve_temperature,
         )
 
         # Pull out the message text safely
