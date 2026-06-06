@@ -88,8 +88,12 @@ async def chat_endpoint(
                 chunks=[],  # no chunks to return for conversational queries
             )
 
-        # Only reaches here for RETRIEVAL intents
-        retrieved_docs = retriever.retrieve(query=request.question)
+        search_query = (
+            generator.rewrite_query(request.question, history)
+            if generator.needs_rewrite(request.question, history)
+            else request.question
+        )
+        retrieved_docs = retriever.retrieve(query=search_query)
 
         answer = generator.generate_answer(
             question=request.question, retrieved_chunks=retrieved_docs, history=history
@@ -163,12 +167,21 @@ async def chat_session_documents(
                 chunks=[],  # no chunks to return for conversational queries
             )
 
+        search_query = (
+            generator.rewrite_query(request.question, history)
+            if generator.needs_rewrite(request.question, history)
+            else request.question
+        )
+        
         retrieved_chunks = session_manager.query_session_store(
-            question=request.question, session_id=x_session_id
+            question=search_query, 
+            session_id=x_session_id
         )
 
         answer = generator.generate_answer(
-            question=request.question, retrieved_chunks=retrieved_chunks, history=history
+            question=request.question,
+            retrieved_chunks=retrieved_chunks,
+            history=history,
         )
 
         memory.add("user", request.question)
