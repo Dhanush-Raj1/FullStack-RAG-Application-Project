@@ -20,7 +20,10 @@ export const SESSION_ID = crypto.randomUUID();
 export async function queryRAG(question: string): Promise<ApiResponse> {
   const res = await fetch(`${API_BASE}/api/chat/global`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'x-session-id': SESSION_ID,
+    },
     body: JSON.stringify({ question }),
   });
 
