@@ -8,7 +8,7 @@ from src.models.document import DocumentRetrievalResult
 
 
 class Generator:
-    def __init__(self, model_name: str):
+    def __init__(self, model: str):
         load_dotenv()
 
         api_key = os.getenv("GEMINI_API_KEY")
@@ -18,9 +18,9 @@ class Generator:
 
         self.client = genai.Client(api_key=api_key)
 
-        self.model_name = model_name
+        self.model = model
 
-    def _build_context(self, retrieved_chunks: List[DocumentRetrievalResult]) -> str:
+    def build_context(self, retrieved_chunks: List[DocumentRetrievalResult]) -> str:
 
         context_parts = []
 
@@ -40,7 +40,7 @@ class Generator:
         self, question: str, retrieved_chunks: List[DocumentRetrievalResult]
     ) -> str:
 
-        context = self._build_context(retrieved_chunks)
+        context = self.build_context(retrieved_chunks)
 
         prompt = f"""
             You are a helpful assistant answering questions using retrieved document context.
@@ -60,7 +60,7 @@ class Generator:
         """
 
         response = self.client.models.generate_content(
-            model=self.model_name, contents=prompt
+            model=self.model, contents=prompt
         )
 
         return response.text
