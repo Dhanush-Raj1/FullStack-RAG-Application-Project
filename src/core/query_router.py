@@ -43,11 +43,16 @@ class QueryRouter:
         - Small talk or general chitchat (e.g. "How are you?", "That's interesting")
         - An expression of gratitude (e.g. "Thanks", "Thank you")
         - A single-word or very short acknowledgement (e.g. "Ok", "Got it", "Sure")
+        - Personal questions about the conversation itself ("What is my name?",
+          "Do you remember what I said?", "What did I tell you earlier?",
+          "Who am I?", "Remember my name?")
+        - Questions about the assistant's identity ("What model are you?",
+          "Who made you?", "Are you an AI?")
         
         Classify as RETRIEVAL if the query is:
         - A factual question about specific documents, topics, products, or data
         - A request to summarize, explain, or compare information from documents
-        - Any question that would require looking up stored knowledge to answer correctly
+        - Any question requiring stored knowledge from the knowledge base
         
         Respond with ONLY one word: CONVERSATIONAL or RETRIEVAL. Nothing else.
         
