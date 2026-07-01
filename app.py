@@ -1,31 +1,31 @@
-from fastapi import FastAPI, HTTPException, Header, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Dict
+from typing import List
 
-from src.core.embedding import GeminiEmbeddingGenerator
+from fastapi import FastAPI, File, Header, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+
+from session_pipeline import SESSION_INDEX_REGISTRY, SessionPipelineManager
 from src.core.chunker import Chunker
-from src.core.vector_store import VectorStore
+from src.core.embedding import GeminiEmbeddingGenerator
+from src.core.llama_generator import Generator
+from src.core.memory import MemoryManager
+from src.core.query_router import QueryRouter
 from src.core.reranker import CohereReranker
 from src.core.retriever import Retriever
-from src.core.query_router import QueryRouter
-from src.core.memory import MemoryManager
-from src.core.llama_generator import Generator
-from session_pipeline import SessionPipelineManager, SESSION_INDEX_REGISTRY
+from src.core.vector_store import VectorStore
 from src.models.document import ChunkOut, QueryRequest, QueryResponse
 from src.utils.config import (
-    CHUNK_SIZE,
+    CHAT_TEMPERATURE,
     CHUNK_OVERLAP,
+    CHUNK_SIZE,
     EMBEDDING_MODEL,
+    FINAL_MODEL,
     RERANKER_MODEL,
-    TOP_K,
-    TOP_N,
+    RETRIEVE_TEMPERATURE,
     ROUTER_MODEL,
     ROUTER_TEMPERATURE,
-    FINAL_MODEL,
-    CHAT_TEMPERATURE,
-    RETRIEVE_TEMPERATURE,
+    TOP_K,
+    TOP_N,
 )
-
 
 app = FastAPI(title="RAG Application")
 
