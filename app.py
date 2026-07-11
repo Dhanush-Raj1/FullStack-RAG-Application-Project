@@ -1,9 +1,10 @@
 from typing import List
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-from session_pipeline import SESSION_INDEX_REGISTRY, SessionPipelineManager
+from src.session_pipeline import SESSION_INDEX_REGISTRY, SessionPipelineManager
 from src.core.chunker import Chunker
 from src.core.embedding import GeminiEmbeddingGenerator
 from src.core.llama_generator import Generator
@@ -27,18 +28,6 @@ from src.utils.config import (
     TOP_N,
 )
 
-app = FastAPI(title="RAG Application")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://rag-frontend-b75n.onrender.com",
-    ],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
-)
 
 # Global instances initialized ONCE when server starts
 chunker = Chunker(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
@@ -61,6 +50,21 @@ session_manager = SessionPipelineManager(
     embedding_generator=embedding_generator, chunker=chunker
 )
 memory_manager = MemoryManager(window_size=10)
+
+
+
+app = FastAPI(title="RAG Application")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "https://rag-frontend-b75n.onrender.com",
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
 
 
 @app.post("/api/chat/global", response_model=QueryResponse)
@@ -196,3 +200,11 @@ async def chat_session_documents(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get("/health")
+async def health_check(): 
+    """
+    Health check endpoint to verify if the server is running
+    """
+    return {"status": "healthy"}
