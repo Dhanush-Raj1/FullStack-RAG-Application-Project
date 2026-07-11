@@ -222,3 +222,4 @@ MyReadme.md
 notebooks/document_chunks.csv
 src/main.py
 src/core/embedding_rough.py
+.vscode
