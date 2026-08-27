@@ -1,10 +1,9 @@
 from pathlib import Path
-from typing import List
 
 from src.models.document import Document, DocumentMetadata
 
 
-def load_markdowns(directory_path: Path) -> List[Document]:
+def load_markdowns(directory_path: Path) -> list[Document]:
     """
     Load all markdown files from a directory.
     """
@@ -16,7 +15,7 @@ def load_markdowns(directory_path: Path) -> List[Document]:
 
     markdown_files = sorted(directory_path.glob("*.md"))
 
-    documents: List[Document] = []
+    documents: list[Document] = []
 
     for md_file in markdown_files:
         content = md_file.read_text(encoding="utf-8")
