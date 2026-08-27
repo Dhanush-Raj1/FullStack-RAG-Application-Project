@@ -17,7 +17,9 @@ class QueryValidator:
                 reason=f"Question exceeds maximum length of {MAX_QUERY_LEN} characters.",
             )
 
-        alnum_ratio = sum(c.isalnum() for c in q) / max(len(q), 1)
+        alnum_ratio = sum(c.isalnum() for c in q) / max(
+            len(q), 1
+        )  # alphanumeric character ratio
         if alnum_ratio < 0.2:
             return GuardrailResult(
                 action=GuardrailAction.BLOCK,
