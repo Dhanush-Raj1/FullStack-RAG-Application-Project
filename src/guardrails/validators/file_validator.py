@@ -44,7 +44,7 @@ class FileValidator:
                 reason="File content does not match its extension.",
             )
 
-        if ext in (".md", ".text"):
+        if ext in (".md", ".txt"):
             try:
                 file_bytes.decode("utf-8")
             except UnicodeDecodeError:
