@@ -41,7 +41,7 @@ class FileValidator:
         if expected_magic and not file_bytes.startswith(expected_magic):
             return GuardrailResult(
                 action=GuardrailAction.BLOCK,
-                reason=f"File content does not match its extension.",
+                reason="File content does not match its extension.",
             )
 
         if ext in (".md", ".text"):
