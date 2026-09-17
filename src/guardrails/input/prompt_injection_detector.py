@@ -41,7 +41,7 @@ INSTRUCTION_OVERIDE_PATTERNS = [
 ]
 
 
-# Instruciton replacement / priority manipulation
+# Instruction replacement / priority manipulation
 INSTRUCTION_REPLACEMENT_PATTERNS = [
     re.compile(
         r"\bignore\s+(?:all\s+)?(?:the\s+)?"
