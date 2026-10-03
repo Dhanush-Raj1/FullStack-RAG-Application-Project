@@ -4,7 +4,6 @@ import unicodedata
 from src.guardrails.schemas import GuardrailAction, GuardrailResult
 
 BLOCK_THRESHOLD = 4
-
 FLAG_THRESHOLD = 2
 
 # Attempts to invalidate, ignore, replace, or override instructions
