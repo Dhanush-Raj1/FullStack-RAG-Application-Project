@@ -1,38 +1,7 @@
-# import re
-
-# from src.guardrails.schemas import GuardrailAction, GuardrailResult
-
-# EXTRACTION_PATTERNS = [
-#     re.compile(
-#         r"(?i)what (is|are) your (system prompt|api key|env(ironment)? variables?)"
-#     ),
-#     re.compile(r"(?i)print (your|the) (config|environment|secret)"),
-#     re.compile(r"(?i)show me (your|the) (source code|\.env|configuration)"),
-#     re.compile(r"(?i)dump (the )?(database|vector store|index)"),
-#     re.compile(
-#         r"(?i)list all (sessions|users|uploaded files) (on|in) (the|your) server"
-#     ),
-# ]
-
-
-# class DataExtractionDetector:
-#     def scan(self, prompt: str) -> GuardrailResult:
-#         for pattern in EXTRACTION_PATTERNS:
-#             if pattern.search(prompt):
-#                 return GuardrailResult(
-#                     action=GuardrailAction.BLOCK,
-#                     message="Query attempts to extract internal system data.",
-#                     metadata={"matched_pattern": pattern.pattern},
-#                 )
-
-#         return GuardrailResult(action=GuardrailAction.ALLOW)
-
-
 import re
 import unicodedata
 
 from src.guardrails.schemas import GuardrailAction, GuardrailResult
-
 
 BLOCK_THRESHOLD = 4
 FLAG_THRESHOLD = 2
@@ -236,3 +205,141 @@ INTERNAL_SYSTEM_PATTERNS = [
         r"(?:details?|information|configuration)\b"
     ),
 ]
+
+
+# Logs / diagnostics / internal telementry
+LOG_EXTRACTION_PATTERNS = [
+    re.compile(
+        r"\b(?:show|print|display|dump|output|give|provide|"
+        r"return|export)\s+(?:me\s+)?"
+        r"(?:the\s+)?(?:server|application|backend|system)\s+"
+        r"(?:logs?|log\s+files?|debug\s+logs?|error\s+logs?)\b"
+    ),
+    re.compile(
+        r"\b(?:show|dump|print|return)\s+(?:me\s+)?"
+        r"(?:internal\s+)?(?:logs?|debugging\s+information|"
+        r"telemetry|diagnostics?)\b"
+    ),
+]
+
+
+# cloud / infrastructure metadata
+INFRASTRUCTURE_PATTERNS = [
+    re.compile(
+        r"\b(?:show|reveal|print|display|give|provide|"
+        r"return|list|dump)\s+(?:me\s+)?"
+        r"(?:your|the)\s+"
+        r"(?:cloud\s+credentials?|aws\s+credentials?|"
+        r"gcp\s+credentials?|azure\s+credentials?|"
+        r"access\s+keys?|service\s+account\s+credentials?)\b"
+    ),
+    re.compile(
+        r"\b(?:show|reveal|give|provide|list)\s+(?:me\s+)?"
+        r"(?:your|the)\s+"
+        r"(?:server|host|instance|container|cloud)\s+"
+        r"(?:metadata|credentials?|configuration)\b"
+    ),
+]
+
+
+# patten registry
+PATTERN_GROUPS = {
+    "prompt_extraction": (PROMPT_EXTRACTION_PATTERNS, 4),
+    "secret_extraction": (SECRET_EXTRACTION_PATTERNS, 4),
+    "environment_extraction": (ENVIRONMENT_EXTRACTION_PATTERNS, 3),
+    "source_extraction": (SOURCE_EXTRACTION_PATTERNS, 3),
+    "database_extraction": (DATABASE_EXTRACTION_PATTERNS, 4),
+    "user_data_extraction": (USER_DATA_EXTRACTION_PATTERNS, 4),
+    "file_extraction": (FILE_EXTRACTION_PATTERNS, 3),
+    "internal_system_extraction": (INTERNAL_SYSTEM_PATTERNS, 3),
+    "log_extraction": (LOG_EXTRACTION_PATTERNS, 3),
+    "infrastructure_extraction": (INFRASTRUCTURE_PATTERNS, 4),
+}
+
+
+def normalize_for_detection(text: str) -> str:
+    """Normalize user input for security detection"""
+
+    text = unicodedata.normalize("NFKC", text)
+
+    # remove zero-width characters, commonly used to avoid text matching
+    text = re.sub(r"[\u200B-\u200D\u2060\uFEFF]", "", text)
+
+    # normalize line endings
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+
+    # Collapse repeated whitespace
+    text = re.sub("\r\n", "\n").replace("\r", "\n")
+    text = re.sub(r"\n{2,}", "\n", text)
+
+    return text.strip().lower()
+
+
+class DataExtractionDetector:
+    def scan(self, prompt: str) -> GuardrailResult:
+        if prompt is None:
+            return GuardrailResult(
+                action=GuardrailAction.BLOCK, reason="Input cannot be empty."
+            )
+
+        if not isinstance(prompt, str):
+            return GuardrailResult(
+                action=GuardrailAction.BLOCK, reason="Input must be a string."
+            )
+
+        normalized_prompt = normalize_for_detection(prompt)
+
+        if not normalized_prompt:
+            return GuardrailResult(
+                action=GuardrailAction.BLOCK, reason="Input cannot be empty."
+            )
+
+        score = 0
+        matched_categories = []
+        matched_patterns = []
+
+        for category, (patterns, weight) in PATTERN_GROUPS.items():
+            category_matched = False
+
+            for pattern in patterns:
+                if pattern.search(normalized_prompt):
+                    score += weight
+                    matched_patterns.append(pattern.pattern)
+                    category_matched = True
+
+                    break
+
+            if category_matched:
+                matched_categories.append(category)
+
+        # strong extraction attempt
+        if score >= BLOCK_THRESHOLD:
+            return GuardrailResult(
+                action=GuardrailAction.BLOCK,
+                reason="Input attempts to internal or protected system data.",
+                metadata={
+                    "score": score,
+                    "categories": matched_categories,
+                    "patterns_count": len(matched_patterns),
+                },
+            )
+
+        # suspicious but weak extraction attempt
+        if score >= FLAG_THRESHOLD:
+            return GuardrailResult(
+                action=GuardrailAction.FLAG,
+                reason="Input contains suspicious data extraction patterns.",
+                metadata={
+                    "score": score,
+                    "categories": matched_categories,
+                    "patterns_count": len(matched_patterns),
+                },
+            )
+
+        return GuardrailResult(
+            action=GuardrailAction.ALLOW,
+            metadata={
+                "score": 0,
+                "categories": [],
+            },
+        )
