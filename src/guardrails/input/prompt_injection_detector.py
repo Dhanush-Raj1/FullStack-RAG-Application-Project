@@ -8,7 +8,7 @@ BLOCK_THRESHOLD = 4
 FLAG_THRESHOLD = 2
 
 # Attempts to invalidate, ignore, replace, or override instructions
-INSTRUCTION_OVERIDE_PATTERNS = [
+INSTRUCTION_OVERRIDE_PATTERNS = [
     re.compile(
         r"\bignore\s+(?:all\s+)?(?:the\s+)?"
         r"(?:previous|prior|above|earlier|existing|original)"
@@ -184,6 +184,16 @@ DELIMITER_INJECTION_PATTERNS = [
     ),
 ]
 
+PATTERN_GROUPS = {
+        "instruction_override": (INSTRUCTION_OVERRIDE_PATTERNS, 3),
+        "instruction_replacement": (INSTRUCTION_REPLACEMENT_PATTERNS, 3),
+        "role_manipulation": (ROLE_MANIPULATION_PATTERNS, 2),
+        "system_impersonation": (SYSTEM_IMPERSONATION_PATTERNS, 3),
+        "prompt_extraction": (PROMPT_EXTRACTION_PATTERNS, 3),
+        "jailbreak": (JAILBREAK_PATTERNS, 2),
+        "delimiter_injection": (DELIMITER_INJECTION_PATTERNS, 2),
+    }
+
 
 def normalize_for_detection(prompt: str) -> str:
     """
@@ -206,16 +216,9 @@ def normalize_for_detection(prompt: str) -> str:
 
 
 class PromptInjectionDetector:
-    PATTERN_GROUPS = {
-        "instruction_override": (INSTRUCTION_OVERIDE_PATTERNS, 3),
-        "instruction_replacement": (INSTRUCTION_REPLACEMENT_PATTERNS, 3),
-        "role_manipulation": (ROLE_MANIPULATION_PATTERNS, 2),
-        "system_impersonation": (SYSTEM_IMPERSONATION_PATTERNS, 3),
-        "prompt_extraction": (PROMPT_EXTRACTION_PATTERNS, 3),
-        "jailbreak": (JAILBREAK_PATTERNS, 2),
-        "delimiter_injection": (DELIMITER_INJECTION_PATTERNS, 2),
-    }
-
+    """
+    Detects potential prompt injection attempts in user input.
+    """
     def scan(self, prompt: str) -> GuardrailResult:
         if prompt is None:
             return GuardrailResult(
