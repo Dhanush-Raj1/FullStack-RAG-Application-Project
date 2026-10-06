@@ -194,12 +194,12 @@ PATTERN_GROUPS = {
     }
 
 
-def normalize_for_detection(prompt: str) -> str:
+def normalize_for_detection(query: str) -> str:
     """
     Normalize user input for security detection
     """
     # Canonical Unicode Normalization
-    text = unicodedata.normalize("NFKC", prompt)
+    text = unicodedata.normalize("NFKC", query)
 
     # Remove zero-width and invisible formatting characters that can be used to split malicious phrases.
     text = re.sub(r"[\u200B-\u200D\u2060\uFEFF]", "", text)

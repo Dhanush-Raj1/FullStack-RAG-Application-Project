@@ -257,22 +257,22 @@ PATTERN_GROUPS = {
 }
 
 
-def normalize_for_detection(text: str) -> str:
+def normalize_for_detection(query: str) -> str:
     """Normalize user input for security detection"""
 
-    text = unicodedata.normalize("NFKC", text)
+    query = unicodedata.normalize("NFKC", query)
 
     # remove zero-width characters, commonly used to avoid text matching
-    text = re.sub(r"[\u200B-\u200D\u2060\uFEFF]", "", text)
+    query = re.sub(r"[\u200B-\u200D\u2060\uFEFF]", "", query)
 
     # normalize line endings
-    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    query = query.replace("\r\n", "\n").replace("\r", "\n")
 
     # Collapse repeated whitespace
-    text = re.sub("\r\n", "\n").replace("\r", "\n")
-    text = re.sub(r"\n{2,}", "\n", text)
+    query = re.sub("\r\n", "\n").replace("\r", "\n")
+    query = re.sub(r"\n{2,}", "\n", query)
 
-    return text.strip().lower()
+    return query.strip().lower()
 
 
 class DataExtractionDetector:
