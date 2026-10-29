@@ -111,12 +111,12 @@ def passes_luhn(card_number: str) -> bool:
     return total % 10 == 0
 
 
-def normalize_for_detection(text: str) -> str:
+def normalize_for_detection(query: str) -> str:
     """
     Normalize user's query for PII detection
     """
 
-    text = unicodedata.normalize("NFKC", text)
+    text = unicodedata.normalize("NFKC", query)
     text = re.sub(
         r"[\u200B-\u200D\u2060\uFEFF]",
         "",
