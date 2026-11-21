@@ -1,9 +1,9 @@
-from typing import List, Optional, Dict, Any
+from typing import Any
 
-from src.models.document import DocumentRetrievalResult
 from src.core.embedding import GeminiEmbeddingGenerator
-from src.core.vector_store import VectorStore
 from src.core.reranker import CohereReranker
+from src.core.vector_store import VectorStore
+from src.models.document import DocumentRetrievalResult
 
 
 class Retriever:
@@ -12,7 +12,7 @@ class Retriever:
         embedder: GeminiEmbeddingGenerator,
         vector_store: VectorStore,
         top_k: int,
-        reranker: Optional[CohereReranker] = None,
+        reranker: CohereReranker | None = None,
     ):
         self.embedder = embedder
         self.vector_store = vector_store
@@ -20,8 +20,8 @@ class Retriever:
         self.top_k = top_k
 
     def retrieve(
-        self, query: str, filters: Optional[Dict[str, Any]] = None
-    ) -> List[DocumentRetrievalResult]:
+        self, query: str, filters: dict[str, Any] | None = None
+    ) -> list[DocumentRetrievalResult]:
 
         # Generate query embedding
         query_embedding = self.embedder.embed_query(query)
