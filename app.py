@@ -1,10 +1,8 @@
-from typing import List
-
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.session_pipeline import SESSION_INDEX_REGISTRY, SessionPipelineManager
 from src.core.chunker import Chunker
 from src.core.embedding import GeminiEmbeddingGenerator
 from src.core.llama_generator import Generator
@@ -14,6 +12,7 @@ from src.core.reranker import CohereReranker
 from src.core.retriever import Retriever
 from src.core.vector_store import VectorStore
 from src.models.document import ChunkOut, QueryRequest, QueryResponse
+from src.session_pipeline import SESSION_INDEX_REGISTRY, SessionPipelineManager
 from src.utils.config import (
     CHAT_TEMPERATURE,
     CHUNK_OVERLAP,
@@ -27,7 +26,6 @@ from src.utils.config import (
     TOP_K,
     TOP_N,
 )
-
 
 # Global instances initialized ONCE when server starts
 chunker = Chunker(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
@@ -50,7 +48,6 @@ session_manager = SessionPipelineManager(
     embedding_generator=embedding_generator, chunker=chunker
 )
 memory_manager = MemoryManager(window_size=10)
-
 
 
 app = FastAPI(title="RAG Application")
@@ -118,7 +115,7 @@ async def chat_endpoint(
 
 @app.post("/api/upload")
 async def upload_documents(
-    files: List[UploadFile] = File(...),
+    files: list[UploadFile] = File(...),
     x_session_id: str = Header(
         ..., description="Session ID to register documents under"
     ),
@@ -176,10 +173,9 @@ async def chat_session_documents(
             if generator.needs_rewrite(request.question, history)
             else request.question
         )
-        
+
         retrieved_chunks = session_manager.query_session_store(
-            question=search_query, 
-            session_id=x_session_id
+            question=search_query, session_id=x_session_id
         )
 
         answer = generator.generate_answer(
@@ -200,11 +196,11 @@ async def chat_session_documents(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 
 @app.get("/health")
 @app.head("/health")
-async def health_check(): 
+async def health_check():
     """
     Health check endpoint to verify if the server is running
     """
