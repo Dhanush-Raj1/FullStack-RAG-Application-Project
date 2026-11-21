@@ -4,7 +4,7 @@ from collections.abc import Mapping, Sequence
 
 from src.guardrails.schemas import GuardrailAction, GuardrailResult
 
-DEFAULT_SCOPE_KNOWLEDGE = (
+SCOPE_KNOWLEDGE = (
     # NemoClaw documentation
     "NemoClaw architecture, system components, and technical design",
     "NemoClaw ecosystem, integrations, and supported technologies",
@@ -32,8 +32,7 @@ DEFAULT_SCOPE_KNOWLEDGE = (
     "Questions that combine information from multiple documents in the knowledge base",
 )
 
-
-DEFAULT_OFF_TOPIC_PATTERNS: Mapping[str, str] = {
+OFF_TOPIC_PATTERNS: Mapping[str, str] = {
     "cooking_and_recipes": (
         r"\b(?:"
         r"recipe\s+for|"
@@ -87,15 +86,15 @@ class OffTopicDetector:
 
     def __init__(
         self,
-        scope_keywords: Sequence[str] = DEFAULT_SCOPE_KNOWLEDGE,
-        off_topic_patterns: Mapping[str, str] = DEFAULT_OFF_TOPIC_PATTERNS,
+        scope_knowledge: Sequence[str] = SCOPE_KNOWLEDGE,
+        off_topic_patterns: Mapping[str, str] = OFF_TOPIC_PATTERNS,
     ) -> None:
         self.scope_patterns = [
             (
                 keyword,
                 re.compile(r"(?<!\w)" + re.escape(keyword.casefold()) + r"(?!\w)"),
             )
-            for keyword in scope_keywords
+            for keyword in scope_knowledge
             if keyword and keyword.strip()
         ]
 
