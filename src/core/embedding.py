@@ -2,7 +2,6 @@ import logging
 import os
 import time
 from dataclasses import asdict
-from typing import Dict, List
 
 from dotenv import load_dotenv
 from google import genai
@@ -27,7 +26,7 @@ class GeminiEmbeddingGenerator:
         # Gemini API hard limit for a single batch operation
         self._MAX_BATCH_SIZE = 100
 
-    def embed_text(self, chunks: List[Document]) -> List[float]:
+    def embed_text(self, chunks: list[Document]) -> list[float]:
         """
         Accepts a list of chunked documents, groups them into batches.
         Generate embeddings and returns a list of dictionaries pairing the generated vector with source text properties.
@@ -42,7 +41,9 @@ class GeminiEmbeddingGenerator:
         if not valid_chunks:
             raise ValueError("All chunks are empty after filtering — nothing to embed.")
 
-        texts_to_embed = [chunk.page_content.strip() for chunk in valid_chunks]   # ensure no leading/trailing whitespace in texts sent to Gemini
+        texts_to_embed = [
+            chunk.page_content.strip() for chunk in valid_chunks
+        ]  # ensure no leading/trailing whitespace in texts sent to Gemini
         # texts_to_embed = [chunk.page_content for chunk in chunks]
         all_embeddings = []
 
@@ -94,7 +95,7 @@ class GeminiEmbeddingGenerator:
 
         return embedded_docs, valid_chunks
 
-    def embed_query(self, query: str) -> List[float]:
+    def embed_query(self, query: str) -> list[float]:
         """
         Embeds incoming user's query.
         """
@@ -110,7 +111,10 @@ class GeminiEmbeddingGenerator:
         return response.embeddings[0].values
 
     # Main function for embedding list of chunked documents with batch request
-    def embed_documents(self, chunks) -> List[Dict]:
+    def embed_documents(self, chunks) -> list[dict]:
+        """
+        Accepts a list of chunked documents, groups them into batches and embeds them.
+        """
         if not chunks:
             return []
 
@@ -171,3 +175,48 @@ class GeminiEmbeddingGenerator:
             )
 
         return embedded_docs
+
+    def embed_texts(
+        self,
+        texts: list[str],
+        task_type: str = "RETRIEVAL_DOCUMENT",
+        batch_size: int = 15,
+    ):
+        """
+        Accepts a list of texts, groups them into batches and embeds them.
+        """
+
+        if not texts:
+            return []
+
+        valid_texts = [text.strip() for text in texts if text and text.strip()]
+
+        if not valid_texts:
+            raise ValueError("All texts are empty after filtering.")
+
+        all_embeddings: list[list[float]] = []
+
+        logger.info(f"Embedding {len(valid_texts)} texts in batches of {batch_size}...")
+
+        for i in range(0, len(valid_texts), batch_size):
+            batch = valid_texts[i : i + batch_size]
+
+            current_batch_num = (i // batch_size) + 1
+            total_batches = (len(valid_texts) + batch_size - 1) // batch_size
+
+            logger.info(
+                f"Sending embedding batch {current_batch_num}/{total_batches} (Size: {len(batch)})..."
+            )
+
+            response = self.client.models.embed_content(
+                model=self.model,
+                contents=batch,
+                config=types.EmbedContentConfig(task_type=task_type),
+            )
+
+            all_embeddings.extend(embedding.values for embedding in response.embeddings)
+
+            if i + batch_size < len(valid_texts):
+                time.sleep(10)
+
+        return all_embeddings
