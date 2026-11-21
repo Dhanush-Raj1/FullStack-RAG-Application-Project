@@ -1,17 +1,17 @@
-import uuid
 import tempfile
+import uuid
+from pathlib import Path
+
 import faiss
 import numpy as np
 import pymupdf4llm
-from pathlib import Path
-from typing import Dict, List, Tuple
 
-from src.models.document import Document, DocumentMetadata, DocumentRetrievalResult
 from src.core.chunker import Chunker
 from src.core.embedding import GeminiEmbeddingGenerator
+from src.models.document import Document, DocumentMetadata, DocumentRetrievalResult
 
 # Format: { session_id: (faiss_index, list_of_chunk_documents) }
-SESSION_INDEX_REGISTRY: Dict[str, Tuple[faiss.Index, List[Document]]] = {}
+SESSION_INDEX_REGISTRY: dict[str, tuple[faiss.Index, list[Document]]] = {}
 
 
 class SessionPipelineManager:
@@ -29,7 +29,7 @@ class SessionPipelineManager:
         chunks them, generates embeddings, and maps them to an in-memory FAISS index.
         """
         file_extension = Path(filename).suffix.lower()
-        documents: List[Document] = []
+        documents: list[Document] = []
 
         if file_extension == ".pdf":
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
@@ -86,7 +86,7 @@ class SessionPipelineManager:
             )
 
         raw_embeddings = []
- 
+
         embedded_docs, valid_chunks = self.embedding_generator.embed_text(chunked_docs)
 
         if not embedded_docs:
@@ -101,10 +101,10 @@ class SessionPipelineManager:
         if session_id in SESSION_INDEX_REGISTRY:
             faiss_index, existing_chunks = SESSION_INDEX_REGISTRY[session_id]
             faiss_index.add(embeddings_matrix)           # append new vectors to existing index
-            existing_chunks.extend(valid_chunks)         # append new chunks to existing list 
-        else: 
-            # session doesn't exist yet, create new index 
-            faiss_index = faiss.IndexFlatL2(dimension)   # initialize new index 
+            existing_chunks.extend(valid_chunks)         # append new chunks to existing list
+        else:
+            # session doesn't exist yet, create new index
+            faiss_index = faiss.IndexFlatL2(dimension)   # initialize new index
             faiss_index.add(embeddings_matrix)           # add vectors to the new index
             SESSION_INDEX_REGISTRY[session_id] = (faiss_index, valid_chunks)    # register new session with its index and chunks
 
@@ -138,7 +138,7 @@ class SessionPipelineManager:
 
     def query_session_store(
         self, question: str, session_id: str = "default_session", k: int = 3
-    ) -> List[DocumentRetrievalResult]:
+    ) -> list[DocumentRetrievalResult]:
         """
         Queries the in-memory FAISS vector index and returns standardized DocumentRetrievalResult records.
         """
@@ -156,7 +156,7 @@ class SessionPipelineManager:
         top_k = min(k, len(chunked_docs))
         distances, indices = faiss_index.search(query_vector, top_k)
 
-        results: List[DocumentRetrievalResult] = []
+        results: list[DocumentRetrievalResult] = []
         for rank, idx in enumerate(indices[0]):
             if idx == -1:
                 continue
